@@ -1,0 +1,209 @@
+import pandas as pd
+import numpy as np 
+from sklearn.tree import DecisionTreeClassifier 
+from sklearn.ensemble import BaggingClassifier
+from sklearn.model_selection import train_test_split 
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.datasets import load_iris, load_wine
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder
+
+iris = load_iris()
+df = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+df['target'] = iris.target
+
+
+wine=load_wine()
+df2= pd.DataFrame(data=wine.data, columns=wine.feature_names)
+df2['target']=wine.target
+
+X1=df.drop(columns=['target'])
+Y1=df.drop(columns =[col for col in df.columns if col !='target'])
+
+x1_train , x1_test , y1_train , y1_test= train_test_split(X1,Y1,random_state=42, test_size=0.25)
+modelfortree= DecisionTreeClassifier(random_state=42)
+modelfortree.fit(x1_train,y1_train)
+predict=modelfortree.predict(x1_test)
+acc=accuracy_score(y1_test,predict)
+confusionmatrix=confusion_matrix(y1_test, predict)
+
+modelbagg=BaggingClassifier(
+    random_state=42, n_estimators=3, 
+    estimator=DecisionTreeClassifier(random_state=42)
+)
+
+
+
+
+# df=pd.read_csv('csv file location', header=None, name= ' col names')
+import pandas as pd
+import numpy as np 
+from sklearn.tree import DecisionTreeClassifier 
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.model_selection import train_test_split 
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.datasets import load_iris, load_wine
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder
+
+iris = load_iris()
+df = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+df['target'] = iris.target
+
+
+wine=load_wine()
+df2= pd.DataFrame(data=wine.data, columns=wine.feature_names)
+df2['target']=wine.target
+
+scaler=MinMaxScaler()
+X1=df.drop(columns=['target'])
+X1[:] = scaler.fit_transform(X1)
+print(X1.head())
+LabelEnc=LabelEncoder()
+Y1=df.drop(columns =[col for col in df.columns if col !='target'])
+Y1[:] = LabelEnc.fit_transform(Y1)
+print(Y1['target'].unique())
+x1_train , x1_test , y1_train , y1_test= train_test_split(X1,Y1,random_state=42, test_size=0.25)
+modelfortree= DecisionTreeClassifier(random_state=42)
+modelfortree.fit(x1_train,y1_train)
+predict=modelfortree.predict(x1_test)
+acc=accuracy_score(y1_test,predict)
+confusionmatrix=confusion_matrix(y1_test, predict)
+
+modelbagg=AdaBoostClassifier(
+    random_state=42, n_estimators=3, 
+    estimator=DecisionTreeClassifier(random_state=42)
+)
+modelbagg.fit(x1_train,y1_train)
+predict2=modelbagg.predict(x1_test)
+acc2=accuracy_score(y1_test,predict2)
+
+
+
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris , load_diabetes
+
+diabetes=load_diabetes()
+df= pd.DataFrame(data=diabetes.data, columns=diabetes.feature_names)
+df['target']=diabetes.target
+df.head()
+features=diabetes.feature_names
+
+for i, feature in enumerate(features):
+    plt.hist(df[feature], bins=30)
+    plt.title(feature)
+    plt.xlabel('val')
+    plt.ylabel('freq')
+    plt.show()
+threshold = 2 #lesser than this are outliers in freq
+outliers=pd.DataFrame()
+outliers.head()
+for feature in features:
+    hist, binedges=np.histogram(df[feature], bins=30)
+    outliers_bins= binedges[:-1][hist<threshold]
+    # print(outliers_bins)
+    # feature_outliers = df[(df[feature] < min(outliers_bins)) | (df[feature] > max(outliers_bins))]
+    feature_outliers=df[((df[feature]<min(outliers_bins)) | df[feature]>max(outliers_bins))]
+    outliers=pd.concat([outliers, feature_outliers])
+
+outliers.drop_duplicates()
+print("Outliers detected:")
+print(outliers)
+
+for i in features:
+    plt.scatter(df.index, df[feature],label='normal', color='blue' )
+    plt.scatter(outliers.index, outliers[feature], label='outlier', color='red')
+    plt.show()
+
+
+
+
+
+# q4 kernal
+from sklearn.neighbors import KernelDensity
+from numpy import where, random, array, quantile
+from sklearn.preprocessing import scale
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_boston
+
+random.seed(135)
+def prepData(N):
+    X = []
+    for i in range(n):
+        A = i/1000 + random.uniform(-4, 3)
+        R = random.uniform(-5, 10)
+        if(R >= 8.6):
+            R = R + 10
+        elif(R < (-4.6)):
+            R = R +(-9)        
+        X.append([A + R])   
+    return array(X)
+
+n = 500
+X = prepData(n)
+
+x_ax = range(n)
+plt.plot(x_ax, X)
+plt.show() 
+
+kern_dens = KernelDensity()
+kern_dens.fit(X)
+
+scores = kern_dens.score_samples(X)
+threshold = quantile(scores, .02)
+print(threshold)
+
+idx = where(scores <= threshold)
+values = X[idx]
+plt.plot(x_ax, X)
+plt.scatter(idx,values, color='r')
+plt.show()
+
+
+
+
+
+#z score
+import pandas as pd
+from scipy import stats
+
+# Load Iris dataset
+iris = pd.read_csv('Iris.csv')
+
+# Check the 'sepal length' column
+if 'sepal length' in iris.columns:
+    # Ensure no missing values in the column
+    iris['sepal length'] = pd.to_numeric(iris['sepal length'], errors='coerce')
+    iris = iris.dropna(subset=['sepal length'])
+    
+    # Calculate Z-scores
+    z_scores = stats.zscore(iris['sepal length'])
+    
+    # Identify outliers
+    outliers = iris[(z_scores > 3) | (z_scores < -3)]
+    print("Iris Dataset Outliers (Sepal Length):")
+    print(outliers)
+else:
+    print("'sepal length' column not found in Iris dataset.")
+
+# Load Titanic dataset
+titanic = pd.read_csv('titanic.csv')
+
+# Check the 'Age' column
+if 'Age' in titanic.columns:
+    # Ensure no missing values in the column
+    titanic['Age'] = pd.to_numeric(titanic['Age'], errors='coerce')
+    titanic = titanic.dropna(subset=['Age'])
+    
+    # Calculate Z-scores
+    z_scores_titanic = stats.zscore(titanic['Age'])
+    
+    # Identify outliers
+    outliers_titanic = titanic[(z_scores_titanic > 3) | (z_scores_titanic < -3)]
+    print("\nTitanic Dataset Outliers (Age):")
+    print(outliers_titanic)
+else:
+    print("'Age' column not found in Titanic dataset.")
+
+
